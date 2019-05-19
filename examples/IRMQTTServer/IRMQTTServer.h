@@ -30,6 +30,7 @@
 // Comment this out to disable receiving/decoding IR messages entirely.
 #define IR_RX 14  // <=- CHANGE_ME (optional)
 #define IR_RX_PULLUP false
+#define TEMP_DHT 2 //Temp Gpio for dht11
 
 // --------------------- Network Related Settings ------------------------------
 const uint16_t kHttpPort = 80;  // The TCP port the HTTP server is listening on.
@@ -143,6 +144,10 @@ const uint8_t gpioTable[] = {
 #define KEY_FILTER "filter"
 #define KEY_CLEAN "clean"
 #define KEY_CELSIUS "use_celsius"
+#ifdef TEMP_DHT
+#define KEY_ATEMP "atemp"
+#define KEY_AHUMID "ahumid"
+#endif
 
 // HTML arguments we will parse for IR code information.
 #define KEY_TYPE "type"  // KEY_PROTOCOL is also checked too.

@@ -298,6 +298,11 @@
 // #define MQTT_MAX_PACKET_SIZE 768
 // --------------------------------------------------------------------
 #include <PubSubClient.h>
+#ifdef TEMP_DHT
+static unsigned long templastsend = 0;
+#include "DHTesp.h"
+DHTesp dht;
+#endif
 #endif  // MQTT_ENABLE
 #include <algorithm>  // NOLINT(build/include)
 #include <memory>
@@ -2058,6 +2063,9 @@ void setup(void) {
   mqtt_client.setCallback(mqttCallback);
   // Set various variables
   init_vars();
+  #ifdef TEMP_DHT
+  dht.setup(TEMP_DHT, DHTesp::DHT11);
+  #endif
 #endif  // MQTT_ENABLE
 
 #if FIRMWARE_OTA
@@ -2447,6 +2455,15 @@ void loop(void) {
     // Periodically send all of the climate state via MQTT.
     doBroadcast(&lastBroadcast, kBroadcastPeriodMs, climate, false, false);
   }
+#ifdef TEMP_DHT
+  if (millis() - templastsend > 30000) {
+    templastsend = millis();
+    float temperature = getTemp();
+    sendFloat(MqttClimateStat + KEY_ATEMP, temperature, false);
+    float humidity = getHumid();
+    sendFloat(MqttClimateStat + KEY_AHUMID, humidity, false);
+  }
+#endif
 #endif  // MQTT_ENABLE
 #ifdef IR_RX
   // Check if an IR code has been received via the IR RX module.
@@ -3280,3 +3297,13 @@ bool decodeCommonAc(const decode_results *decode) {
   return true;
 }
 #endif  // USE_DECODED_AC_SETTINGS && defined (IR_RX)
+#ifdef TEMP_DHT
+float getTemp() {
+  float TemperatureSum = ((9 * dht.getTemperature()) / 5.0) + 32;
+  return TemperatureSum;
+}
+float getHumid(){
+    float humidity = dht.getHumidity();
+    return humidity;
+}
+#endif
